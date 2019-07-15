@@ -1,0 +1,22 @@
+{
+  "name": "ac-server",
+  "version": "1.0.0",
+  "description": "AC server written in NodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BurakDev/node-ac-server.git"
+  },
+  "author": "Burak <burak@burak.fr>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BurakDev/node-ac-server/issues"
+  },
+  "homepage": "https://github.com/BurakDev/node-ac-server#readme",
+  "dependencies": {
+    "enet": "^0.2.9"
+  }
+}
