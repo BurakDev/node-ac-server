@@ -1,13 +1,15 @@
 var enet = require("enet");
 
-var s_addr = new enet.Address("127.0.0.1", 6666);
+var s_addr = new enet.Address("37.187.176.129", 28765);
+//var s_addr = new enet.Address("92.222.37.24", 28763);
+
+for(let i = 0; i < 15; i++) {
 
 enet.createClient(function(err, client) {
     if (err) {
         console.log(err);
         return;
     }
-    client.enableCompression();
     client.on("destroy", function() {
         console.log("shutdown!");
     });
@@ -17,7 +19,7 @@ enet.createClient(function(err, client) {
     console.log("connecting...");
 
     function connect() {
-        client.connect(s_addr, 1, 0, function(err, peer, data) {
+        client.connect(s_addr, 2, 3, function(err, peer, data) {
             if (err) {
                 console.log(err);
                 if (err.message === "host-destroyed") process.exit();
@@ -26,55 +28,66 @@ enet.createClient(function(err, client) {
                 return;
             }
 
+            global.peer = peer;
+
             console.log("connected to:", peer.address());
 
             peer.on("message", function(packet, chan) {
-                console.log("got message:", packet.data().toString());
+                console.log("got message [" + chan + "]:", packet.data().toString());
+                servertoclient(chan, packet.data(), packet.data().length);
             });
 
             peer.on("disconnect", function() {
-                console.log("disconnected, sending final packet");
-                peer.send(0, "final packet", function(err) {
-                    console.log(err || "final packet sent!");
-                });
-
-                console.log("shutting down");
-                setTimeout(function() {
-                    client.destroy();
-                });
-            });
-
-            var packet1 = new enet.Packet(new Buffer("Hello\n"), enet.PACKET_FLAG.RELIABLE);
-            console.log("sending packet 1...");
-            peer.send(0, packet1, function(err) {
-                if (err) {
-                    console.log("error sending packet 1:", err);
-                } else {
-                    console.log("packet 1 sent.");
-                }
-            });
-
-            var packet2 = new enet.Packet(new Buffer("test unreliable packet\n"), enet.PACKET_FLAG.UNRELIABLE);
-            console.log("sending packet 2...");
-            peer.send(0, packet2, function(err) {
-                if (err) {
-                    console.log("error sending packet 2:", err);
-                } else {
-                    console.log("packet 2 sent.");
-                }
-            });
-
-            peer.disconnectLater();
-
-            var packet3 = new enet.Packet(new Buffer("test after disconnect\n"), enet.PACKET_FLAG.RELIABLE);
-            console.log("sending packet 3...");
-            peer.send(0, packet3, function(err) {
-                if (err) {
-                    console.log("error sending packet 3:", err);
-                } else {
-                    console.log("packet 3 sent.");
-                }
+                console.log("disconnected");
+                client.destroy();
             });
         });
     }
 });
+}
+function servertoclient(chan, buffer, len, demo) {
+    switch(chan) {
+        case 1:
+            parsemessages(-1, null, buffer, len);
+        break;
+    }
+}
+
+function parsemessages(cn, playerent, buffer, demo) {
+    var type = 0, joining = 0;
+
+    while (buffer.length > 0) {
+        var type = getint(buffer);
+        buffer = buffer.slice(1);
+
+        switch(type) {
+            case 0: //SV_SERVINFO
+                var mycn = getint(buffer);
+                buffer = buffer.slice(1);
+                var prot = getint(buffer);
+                buffer = buffer.slice(1);
+                var sessionid = getint(buffer);
+                buffer = buffer.slice(1);
+                console.log(mycn, prot, sessionid);
+
+                var packet1 = new enet.Packet(Buffer.from('80400C427572616B00643466383363663237316334376636362061316331656130613537303634613831203234636231336466386166653237306600656E0000050200', 'hex'), enet.PACKET_FLAG.RELIABLE);
+                console.log("sending packet 1...");
+                /*global.peer.send(1, packet1, function (err) {
+                    if (err) {
+                        console.log("error sending packet 1:", err);
+                    } else {
+                        console.log("packet 1 sent.");
+                    }
+                });*/
+
+                //80400C427572616B00643466383363663237316334376636362061316331656130613537303634613831203234636231336466386166653237306600656E0000050200
+            break;
+        }
+        break;
+    }
+}
+
+function getint(buffer) {
+    var result = buffer[0];
+    return result;
+}
