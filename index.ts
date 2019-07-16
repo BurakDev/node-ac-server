@@ -1,4 +1,4 @@
-var enet = require("enet");
+import * as enet from 'enet';
 
 enet.createServer({
         address: {
