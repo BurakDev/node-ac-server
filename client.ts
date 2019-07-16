@@ -72,7 +72,7 @@ function parsemessages(cn, playerent, buffer, demo) {
         const type = buffer.shift() as MessageType;
 
         switch(type) {
-            case 0: //SV_SERVINFO
+            case MessageType.SV_SERVINFO:
                 const mycn = buffer.shift();
                 const prot = buffer.shift();
                 const sessionid = buffer.shift();
