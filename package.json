@@ -2,7 +2,7 @@
   "name": "ac-server",
   "version": "1.0.0",
   "description": "AC server written in NodeJS",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -18,5 +18,8 @@
   "homepage": "https://github.com/BurakDev/node-ac-server#readme",
   "dependencies": {
     "enet": "^0.2.9"
+  },
+  "devDependencies": {
+    "@types/node": "^12.6.4"
   }
 }

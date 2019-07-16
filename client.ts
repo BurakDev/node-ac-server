@@ -2,7 +2,7 @@ const enet = require("enet");
 const aclibrary = require("./aclibrary/aclibrary.js");
 
 
-var s_addr = new enet.Address("37.187.176.129", 28765);
+var s_addr = new enet.Address("185.194.142.106", 28763);
 var genpwdhash;
 //var s_addr = new enet.Address("92.222.37.24", 28763);
 
