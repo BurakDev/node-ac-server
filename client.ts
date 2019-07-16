@@ -1,10 +1,11 @@
-const enet = require("enet");
-const aclibrary = require("./aclibrary/aclibrary.js");
-
+import * as enet from 'enet';
+const aclibrary = require('./aclibrary/aclibrary');
 
 var s_addr = new enet.Address("185.194.142.106", 28763);
 var genpwdhash;
 //var s_addr = new enet.Address("92.222.37.24", 28763);
+
+let thePeer;
 
 aclibrary.onRuntimeInitialized = () => {
     genpwdhash = aclibrary.cwrap('genpwdhash', 'string', ['string', 'string', 'number']);
@@ -35,7 +36,7 @@ function main() {
                     return;
                 }
 
-                global.peer = peer;
+                thePeer = peer;
 
                 console.log("connected to:", peer.address());
 
@@ -53,7 +54,7 @@ function main() {
     });
 }
 
-function servertoclient(chan, buffer, len, demo) {
+function servertoclient(chan, buffer, len, demo?) {
     switch(chan) {
         case 1:
             parsemessages(-1, null, buffer, len);
@@ -80,7 +81,7 @@ function parsemessages(cn, playerent, buffer, demo) {
                 //var packet1 = new enet.Packet(Buffer.from('80400C427572616B00643466383363663237316334376636362061316331656130613537303634613831203234636231336466386166653237306600656E0000050200', 'hex'), enet.PACKET_FLAG.RELIABLE);
                 var packet1 = new enet.Packet(bufferPacket, enet.PACKET_FLAG.RELIABLE);
                 console.log("sending packet 1...");
-                global.peer.send(1, packet1, function (err) {
+                thePeer.send(1, packet1, function (err) {
                     if (err) {
                         console.log("error sending packet 1:", err);
                     } else {
