@@ -1,4 +1,5 @@
 import * as enet from 'enet';
+import {MessageType} from "./interfaces/message-type";
 const aclibrary = require('./aclibrary/aclibrary');
 
 var s_addr = new enet.Address("185.194.142.106", 28763);
@@ -68,7 +69,7 @@ function parsemessages(cn, playerent, buffer, demo) {
     buffer = Array.from(buffer);
 
     while (buffer.length > 0) {
-        const type = buffer.shift();
+        const type = buffer.shift() as MessageType;
 
         switch(type) {
             case 0: //SV_SERVINFO
