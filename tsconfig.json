@@ -1,10 +1,15 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es5",
-    "sourceMap": true
+    "target": "es6",
+    "sourceMap": true,
+    "allowJs": true
   },
+  "lib": [
+    "ESNext"
+  ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "aclibrary"
   ]
 }
