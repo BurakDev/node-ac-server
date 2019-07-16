@@ -59,3 +59,8 @@ typings/
 
 # next.js build output
 .next
+
+# TypeScript compiler output (except wasm stuff)
+*.js
+*.js.map
+!aclibrary/*.js
