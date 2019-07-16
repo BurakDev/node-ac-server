@@ -64,18 +64,16 @@ function servertoclient(chan, buffer, len, demo) {
 function parsemessages(cn, playerent, buffer, demo) {
     var type = 0, joining = 0;
 
+    buffer = Array.from(buffer);
+
     while (buffer.length > 0) {
-        var type = getint(buffer);
-        buffer = buffer.slice(1);
+        const type = buffer.shift();
 
         switch(type) {
             case 0: //SV_SERVINFO
-                var mycn = getint(buffer);
-                buffer = buffer.slice(1);
-                var prot = getint(buffer);
-                buffer = buffer.slice(1);
-                var sessionid = getint(buffer);
-                buffer = buffer.slice(1);
+                const mycn = buffer.shift();
+                const prot = buffer.shift();
+                const sessionid = buffer.shift();
                 console.log(mycn, prot, sessionid);
 
                 var bufferPacket = Buffer.concat([Buffer.from('80400C427572616B00', 'hex'), Buffer.from(genpwdhash('Burak', '', sessionid)), Buffer.from('00656E0000050200', 'hex')]);
@@ -95,9 +93,4 @@ function parsemessages(cn, playerent, buffer, demo) {
         }
         break;
     }
-}
-
-function getint(buffer) {
-    var result = buffer[0];
-    return result;
 }
