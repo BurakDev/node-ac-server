@@ -64,3 +64,6 @@ typings/
 *.js
 *.js.map
 !aclibrary/*.js
+
+# IDEA IDE-related stuff
+.idea
