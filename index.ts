@@ -1,4 +1,5 @@
 import * as enet from 'enet';
+import { MessageType } from "./interfaces/message-type";
 
 enet.createServer({
         address: {
@@ -25,6 +26,11 @@ enet.createServer({
             /*setTimeout(() => {
                 peer.disconnectLater();
             }, 2000);*/
+
+            // send a "hello world" message to client
+            const msg = Buffer.concat([new Buffer([MessageType.SV_SERVMSG]), Buffer.from('hello world')]);
+            const packet = new enet.Packet(msg, enet.PACKET_FLAG.RELIABLE);
+            peer.send(1, packet);
 
             peer.on("disconnect", () => {
                 console.log("peer disconnected");
