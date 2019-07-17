@@ -37,6 +37,28 @@ enet.createServer({
             }
         }
 
+        function sendServerInfo(client: Client) {
+            const packetBuffer = new Buffer([
+                MessageType.SV_SERVINFO,
+                client.cn,
+
+                // not too sure what most of this is... but it works for now
+                128,
+                177,
+                4,
+                129,
+                191,
+                61,
+                191,
+                217,
+                0
+            ]);
+
+            const packet = new enet.Packet(packetBuffer, enet.PACKET_FLAG.RELIABLE);
+
+            client.peer.send(1, packet);
+        }
+
         //host.enableCompression();
         console.log("host ready on %s:%s", host.address().address, host.address().port);
 
@@ -45,6 +67,8 @@ enet.createServer({
 
             const client = new Client(peer);
             clientManager.addClient(client);
+
+            sendServerInfo(client);
 
             peer.on("message", (packet, chan) => {
                 console.log("got message:", packet.data().toString());
