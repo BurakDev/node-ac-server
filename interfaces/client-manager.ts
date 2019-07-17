@@ -14,12 +14,18 @@ export class ClientManager {
         }
 
         const cn = this.getLowestValidClientNumber();
+        client.cn = cn;
         this.clients[cn] = client;
+
+        client.peer.on('disconnect', () => {
+            console.info(`Client ${cn} disconnected`);
+            this.removeClient(cn);
+        });
 
         return
     }
 
-    public removeClient(cn: number) {
+    private removeClient(cn: number) {
         this.clients[cn] = undefined;
     }
 

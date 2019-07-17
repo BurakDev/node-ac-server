@@ -1,4 +1,5 @@
 export class Client {
+    cn: number;
     name: string;
 
     constructor(

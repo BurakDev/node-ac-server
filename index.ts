@@ -46,10 +46,6 @@ enet.createServer({
             const client = new Client(peer);
             clientManager.addClient(client);
 
-            peer.on("disconnect", data => {
-                console.log("peer disconnected", data);
-            });
-
             peer.on("message", (packet, chan) => {
                 console.log("got message:", packet.data().toString());
                 console.log(chan);
