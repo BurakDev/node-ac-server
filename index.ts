@@ -71,14 +71,22 @@ enet.createServer({
             sendServerInfo(client);
 
             peer.on("message", (packet, chan) => {
-                console.log("got message:", packet.data().toString());
-                console.log(chan);
+                let msgData = Array.from(packet.data());
+                const msgType = msgData.shift() as number;
+
+                // decode chat messages for nicer logging
+                // though there seems to be more data appended to the actual message
+                if (msgType === MessageType.SV_TEXT) {
+                    msgData = packet.data().toString();
+                }
+
+                console.log(`got message on chan ${chan}, type: ${MessageType[msgType]}, content: ${msgData}`);
             });
 
             setInterval(function() {
                 sendServerMessage('Hey there!');
                 sendServerMessage(`${clientManager.connectedClients.length} clients are currently connected`);
-            }, 2000);
+            }, 5000);
         });
 
         host.start();
