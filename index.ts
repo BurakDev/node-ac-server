@@ -1,9 +1,11 @@
 import * as enet from 'enet';
 import { MessageType } from "./interfaces/message-type";
+import { ClientManager } from "./interfaces/client-manager";
+import { Client } from "./interfaces/client";
 
 enet.createServer({
         address: {
-            address: "127.0.0.1",
+            address: "0.0.0.0",
             port: "28763"
         },
         peers: 256,
@@ -16,30 +18,47 @@ enet.createServer({
             console.log(err);
             return;
         }
+
+        const clientManager = new ClientManager();
+
+        /**
+         * sends a message to all connected clients
+         */
+        function sendServerMessage(message: string) {
+            const packetBuffer = Buffer.concat([
+                new Buffer([MessageType.SV_SERVMSG]),
+                Buffer.from(message)
+            ]);
+
+            const packet = new enet.Packet(packetBuffer, enet.PACKET_FLAG.RELIABLE);
+
+            for (const client of clientManager.connectedClients) {
+                client.peer.send(1, packet);
+            }
+        }
+
         //host.enableCompression();
         console.log("host ready on %s:%s", host.address().address, host.address().port);
 
         host.on("connect", (peer, data) => {
             console.log("peer connected");
-            //peer.createWriteStream(0).write("hello I'm the server!");
-            //peer.createReadStream(0).pipe(process.stdout);
-            /*setTimeout(() => {
-                peer.disconnectLater();
-            }, 2000);*/
 
-            // send a "hello world" message to client
-            const msg = Buffer.concat([new Buffer([MessageType.SV_SERVMSG]), Buffer.from('hello world')]);
-            const packet = new enet.Packet(msg, enet.PACKET_FLAG.RELIABLE);
-            peer.send(1, packet);
+            const client = new Client(peer);
+            clientManager.addClient(client);
 
-            peer.on("disconnect", () => {
-                console.log("peer disconnected");
+            peer.on("disconnect", data => {
+                console.log("peer disconnected", data);
             });
 
             peer.on("message", (packet, chan) => {
                 console.log("got message:", packet.data().toString());
                 console.log(chan);
             });
+
+            setInterval(function() {
+                sendServerMessage('Hey there!');
+                sendServerMessage(`${clientManager.connectedClients.length} clients are currently connected`);
+            }, 2000);
         });
 
         host.start();
