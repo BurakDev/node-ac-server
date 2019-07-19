@@ -98,6 +98,8 @@ enet.createServer({
 
                     console.log('sv_connect', playerName);
                     sendServerMessage(`hey ${playerName}!`);
+
+                    // TODO: send SV_WELCOME message to client
                 }
 
                 if (msgType === MessageType.SV_TEXT) {
