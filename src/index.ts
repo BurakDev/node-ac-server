@@ -1,7 +1,7 @@
 import * as enet from 'enet';
-import { MessageType } from "./interfaces/message-type";
-import { ClientManager } from "./interfaces/client-manager";
-import { Client } from "./interfaces/client";
+import {MessageType} from "./interfaces/message-type";
+import {ClientManager} from "./interfaces/client-manager";
+import {Client} from "./interfaces/client";
 
 enet.createServer({
         address: {
@@ -59,6 +59,10 @@ enet.createServer({
             client.peer.send(1, packet);
         }
 
+        function getConnectInfo(buffer: Buffer) {
+            
+        }
+
         //host.enableCompression();
         console.log("host ready on %s:%s", host.address().address, host.address().port);
 
@@ -71,12 +75,23 @@ enet.createServer({
             sendServerInfo(client);
 
             peer.on("message", (packet, chan) => {
-                let msgData = Array.from(packet.data());
-                const msgType = msgData.shift() as number;
+                let msgData = packet.data();
+                const msgType = msgData[0];
+
+                if ([MessageType.SV_POSC, MessageType.SV_PING].includes(msgType)) {
+                    // ignore those for now, just to stop spamming the console
+                    return;
+                }
+
+                if (msgType === MessageType.SV_CONNECT) {
+                    const name = Buffer.from(msgData); //.slice(7).toString();
+
+                    console.log('sv_connect', name);
+                }
 
                 // decode chat messages for nicer logging
                 // though there seems to be more data appended to the actual message
-                if (msgType === MessageType.SV_TEXT) {
+                if ([MessageType.SV_TEXT, MessageType.SV_CONNECT].includes(msgType)) {
                     msgData = packet.data().toString();
                 }
 

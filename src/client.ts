@@ -67,6 +67,7 @@ function parsemessages(cn, playerent, buffer, demo) {
     var type = 0, joining = 0;
 
     buffer = Array.from(buffer);
+    console.log(buffer);
 
     while (buffer.length > 0) {
         const type = buffer.shift() as MessageType;

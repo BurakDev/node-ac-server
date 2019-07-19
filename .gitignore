@@ -67,3 +67,6 @@ typings/
 
 # IDEA IDE-related stuff
 .idea
+
+# compiler output
+build
