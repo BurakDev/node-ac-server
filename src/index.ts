@@ -2,6 +2,7 @@ import * as enet from 'enet';
 import {MessageType} from "./interfaces/message-type";
 import {ClientManager} from "./interfaces/client-manager";
 import {Client} from "./interfaces/client";
+import {MessageReader} from "./interfaces/message-reader";
 
 enet.createServer({
         address: {
@@ -59,10 +60,6 @@ enet.createServer({
             client.peer.send(1, packet);
         }
 
-        function getConnectInfo(buffer: Buffer) {
-            
-        }
-
         //host.enableCompression();
         console.log("host ready on %s:%s", host.address().address, host.address().port);
 
@@ -75,8 +72,8 @@ enet.createServer({
             sendServerInfo(client);
 
             peer.on("message", (packet, chan) => {
-                let msgData = packet.data();
-                const msgType = msgData[0];
+                const messageReader = new MessageReader(packet).readInt();
+                const [ msgType ] = messageReader.getResult();
 
                 if ([MessageType.SV_POSC, MessageType.SV_PING].includes(msgType)) {
                     // ignore those for now, just to stop spamming the console
@@ -84,18 +81,29 @@ enet.createServer({
                 }
 
                 if (msgType === MessageType.SV_CONNECT) {
-                    const name = Buffer.from(msgData); //.slice(7).toString();
+                    const reader = new MessageReader(packet);
 
-                    console.log('sv_connect', name);
+                    const parsedContent = reader
+                        .readInt()
+                        .readInt()
+                        .readInt()
+                        .readString()
+                        .getResult();
+
+                    const [ _, acVersion, buildType, playerName ] = parsedContent;
+
+                    client.name = playerName;
+
+                    console.log('sv_connect', playerName);
                 }
 
                 // decode chat messages for nicer logging
                 // though there seems to be more data appended to the actual message
-                if ([MessageType.SV_TEXT, MessageType.SV_CONNECT].includes(msgType)) {
-                    msgData = packet.data().toString();
-                }
+                // if ([MessageType.SV_TEXT, MessageType.SV_CONNECT].includes(msgType)) {
+                //     msgData = packet.data().toString();
+                // }
 
-                console.log(`got message on chan ${chan}, type: ${MessageType[msgType]}, content: ${msgData}`);
+                // console.log(`got message on chan ${chan}, type: ${MessageType[msgType]}, content: ${msgData}`);
             });
 
             setInterval(function() {
