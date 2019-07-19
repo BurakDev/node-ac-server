@@ -107,6 +107,7 @@ enet.createServer({
 
                     console.log(`${client.name} says: ${chatMessage}`);
 
+                    // text messages are encased in client messages, so the client knows who sent the message
                     const packetBuffer = Buffer.concat([
                         Buffer.from([
                             MessageType.SV_CLIENT,
