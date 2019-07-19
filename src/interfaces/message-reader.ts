@@ -52,8 +52,6 @@ export class MessageReader {
             Buffer.from(chars.slice(0, -1)).toString()
         );
 
-        console.log(this.result);
-
         return this;
     }
 
