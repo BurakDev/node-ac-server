@@ -75,6 +75,10 @@ enet.createServer({
                 const messageReader = new MessageReader(packet).readInt();
                 const [ msgType ] = messageReader.getResult();
 
+                if (msgType !== MessageType.SV_POSC && msgType !== MessageType.SV_PING) {
+                    console.log(`got message on chan ${chan}, type: ${MessageType[msgType]}, content:  `, Array.from(packet.data()));
+                }
+
                 if ([MessageType.SV_POSC, MessageType.SV_PING].includes(msgType)) {
                     // ignore those for now, just to stop spamming the console
 
@@ -102,9 +106,23 @@ enet.createServer({
                         .getResult();
 
                     console.log(`${client.name} says: ${chatMessage}`);
-                }
 
-                // console.log(`got message on chan ${chan}, type: ${MessageType[msgType]}, content: ${msgData}`);
+                    const packetBuffer = Buffer.concat([
+                        Buffer.from([
+                            MessageType.SV_CLIENT,
+                            client.cn,
+                            chatMessage.length + 1,
+                            MessageType.SV_TEXT
+                        ]),
+                        Buffer.from(chatMessage)
+                    ]);
+                    const packet = new enet.Packet(packetBuffer, enet.PACKET_FLAG.RELIABLE);
+
+                    const recipients = clientManager.connectedClients.filter(recipient => recipient.cn !== client.cn);
+                    for (const recipient of recipients) {
+                        recipient.peer.send(1, packet);
+                    }
+                }
             });
 
             setInterval(function() {
