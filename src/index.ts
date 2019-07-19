@@ -77,14 +77,12 @@ enet.createServer({
 
                 if ([MessageType.SV_POSC, MessageType.SV_PING].includes(msgType)) {
                     // ignore those for now, just to stop spamming the console
+
                     return;
                 }
 
                 if (msgType === MessageType.SV_CONNECT) {
-                    const reader = new MessageReader(packet);
-
-                    const parsedContent = reader
-                        .readInt()
+                    const parsedContent = messageReader
                         .readInt()
                         .readInt()
                         .readString()
@@ -95,13 +93,16 @@ enet.createServer({
                     client.name = playerName;
 
                     console.log('sv_connect', playerName);
+                    sendServerMessage(`hey ${playerName}!`);
                 }
 
-                // decode chat messages for nicer logging
-                // though there seems to be more data appended to the actual message
-                // if ([MessageType.SV_TEXT, MessageType.SV_CONNECT].includes(msgType)) {
-                //     msgData = packet.data().toString();
-                // }
+                if (msgType === MessageType.SV_TEXT) {
+                    const [ _, chatMessage ] = messageReader
+                        .readString()
+                        .getResult();
+
+                    console.log(`${client.name} says: ${chatMessage}`);
+                }
 
                 // console.log(`got message on chan ${chan}, type: ${MessageType[msgType]}, content: ${msgData}`);
             });
