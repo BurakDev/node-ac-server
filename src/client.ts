@@ -1,5 +1,7 @@
 import * as enet from 'enet';
 import {MessageType} from "./interfaces/message-type";
+import {MessageReader} from "./interfaces/message-reader";
+
 const aclibrary = require('./aclibrary/aclibrary');
 
 var s_addr = new enet.Address("185.194.142.106", 28763);
@@ -14,12 +16,12 @@ aclibrary.onRuntimeInitialized = () => {
 };
 
 function main() {
-    enet.createClient(function(err, client) {
+    enet.createClient(function (err, client) {
         if (err) {
             console.log(err);
             return;
         }
-        client.on("destroy", function() {
+        client.on("destroy", function () {
             console.log("shutdown!");
         });
 
@@ -28,7 +30,7 @@ function main() {
         console.log("connecting...");
 
         function connect() {
-            client.connect(s_addr, 2, 3, function(err, peer, data) {
+            client.connect(s_addr, 2, 3, function (err, peer, data) {
                 if (err) {
                     console.log(err);
                     if (err.message === "host-destroyed") process.exit();
@@ -41,12 +43,19 @@ function main() {
 
                 console.log("connected to:", peer.address());
 
-                peer.on("message", function(packet, chan) {
-                    console.log("got message [" + chan + "]:", packet.data().toString());
-                    servertoclient(chan, packet.data(), packet.data().length);
+                const connect_msg = Buffer.from([84, 128, 178, 4, 128, 36, 12, 99, 101, 99, 0, 51, 54, 52, 54, 98, 50, 49, 55, 101, 53, 49, 51, 97, 102, 97, 99, 32, 57, 102, 54, 100, 50, 98, 56, 50, 100, 99, 48, 101, 102, 100, 51, 48, 32, 49, 99, 51, 99, 51, 57, 55, 55, 98, 57, 56, 97, 53, 102, 100, 101, 0, 101, 110, 0, 0, 3, 0, 0]);
+
+                peer.send(1, connect_msg, enet.PACKET_FLAG.RELIABLE);
+
+                peer.on("message", function (packet, chan) {
+                    const messageReader = new MessageReader(packet).readInt();
+                    const [ msgType ] = messageReader.getResult();
+
+                    console.log("got message [" + chan + "]:", MessageType[msgType], packet.data());
+                    //servertoclient(chan, packet.data(), packet.data().length);
                 });
 
-                peer.on("disconnect", function() {
+                peer.on("disconnect", function () {
                     console.log("disconnected");
                     client.destroy();
                 });
