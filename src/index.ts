@@ -1,11 +1,48 @@
 import * as enet from 'enet';
+import { promisify } from 'util';
 import {MessageType} from "./interfaces/message-type";
 import {ClientManager} from "./interfaces/client-manager";
 import {Client} from "./interfaces/client";
 import {MessageReader} from "./interfaces/message-reader";
 import {MessageWriter} from "./interfaces/message-writer";
 
-enet.createServer({
+async function main() {
+    // bootstrap internal modules
+    const clientManager = new ClientManager();
+
+
+    /**
+     * sends a message to all connected clients
+     */
+    function sendServerMessage(message: string) {
+        const writer = new MessageWriter();
+        writer
+            .putInt(MessageType.SV_SERVMSG)
+            .putString(message);
+
+        const packet = new enet.Packet(writer.getResult(), enet.PACKET_FLAG.RELIABLE);
+
+        for (const client of clientManager.connectedClients) {
+            client.peer.send(1, packet);
+        }
+    }
+
+    function sendServerInfo(client: Client) {
+        const writer = new MessageWriter();
+        writer
+            .putInt(MessageType.SV_SERVINFO)
+            .putInt(client.cn)
+            .putInt(1201) // ac protocol version
+            .putInt(-641778241) // salt
+            .putInt(0); // hasPassword
+
+        const packet = new enet.Packet(writer.getResult(), enet.PACKET_FLAG.RELIABLE);
+
+        client.peer.send(1, packet);
+    }
+
+    // bootstrap server
+    const host = await promisify(enet.createServer)({
         address: {
             address: "0.0.0.0",
             port: "28763"
@@ -14,127 +51,83 @@ enet.createServer({
         channels: 3,
         down: 0,
         up: 1
-    },
-    (err, host) => {
-        if (err) {
-            console.log(err);
-            return;
-        }
+    });
 
-        const clientManager = new ClientManager();
+    //host.enableCompression();
+    console.log("host ready on %s:%s", host.address().address, host.address().port);
 
-        /**
-         * sends a message to all connected clients
-         */
-        function sendServerMessage(message: string) {
-            const writer = new MessageWriter();
-            writer
-                .putInt(MessageType.SV_SERVMSG)
-                .putString(message);
+    host.on("connect", (peer, data) => {
+        console.log("peer connected");
 
-            const packet = new enet.Packet(writer.getResult(), enet.PACKET_FLAG.RELIABLE);
+        const client = new Client(peer);
+        clientManager.addClient(client);
 
-            for (const client of clientManager.connectedClients) {
-                client.peer.send(1, packet);
+        sendServerInfo(client);
+
+        peer.on("message", (packet, chan) => {
+            const messageReader = new MessageReader(packet.data()).readInt();
+            const [ msgType ] = messageReader.getResult();
+
+            if (msgType !== MessageType.SV_POSC && msgType !== MessageType.SV_PING) {
+                console.log(`got message on chan ${chan}, type: ${MessageType[msgType]}, content:  `, Array.from(packet.data()));
             }
-        }
 
-        function sendServerInfo(client: Client) {
-            const packetBuffer = new Buffer([
-                MessageType.SV_SERVINFO,
-                client.cn,
+            if ([MessageType.SV_POSC, MessageType.SV_PING].includes(msgType)) {
+                // ignore those for now, just to stop spamming the console
 
-                // not too sure what most of this is... but it works for now
-                128,
-                177,
-                4,
-                129,
-                191,
-                61,
-                191,
-                217,
-                0
-            ]);
+                return;
+            }
 
-            const packet = new enet.Packet(packetBuffer, enet.PACKET_FLAG.RELIABLE);
+            if (msgType === MessageType.SV_CONNECT) {
+                const parsedContent = messageReader
+                    .readInt()
+                    .readInt()
+                    .readString()
+                    .getResult();
 
-            client.peer.send(1, packet);
-        }
+                const [ _, acVersion, buildType, playerName ] = parsedContent;
 
-        //host.enableCompression();
-        console.log("host ready on %s:%s", host.address().address, host.address().port);
+                client.name = playerName;
 
-        host.on("connect", (peer, data) => {
-            console.log("peer connected");
+                console.log('sv_connect', playerName);
+                sendServerMessage(`hey ${playerName}!`);
 
-            const client = new Client(peer);
-            clientManager.addClient(client);
+                // TODO: send SV_WELCOME message to client
+            }
 
-            sendServerInfo(client);
+            if (msgType === MessageType.SV_TEXT) {
+                const [ _, chatMessage ] = messageReader
+                    .readString()
+                    .getResult();
 
-            peer.on("message", (packet, chan) => {
-                const messageReader = new MessageReader(packet).readInt();
-                const [ msgType ] = messageReader.getResult();
+                console.log(`${client.name} says: ${chatMessage}`);
 
-                if (msgType !== MessageType.SV_POSC && msgType !== MessageType.SV_PING) {
-                    console.log(`got message on chan ${chan}, type: ${MessageType[msgType]}, content:  `, Array.from(packet.data()));
+                // text messages are encased in client messages, so the client knows who sent the message
+                const packetBuffer = Buffer.concat([
+                    Buffer.from([
+                        MessageType.SV_CLIENT,
+                        client.cn,
+                        chatMessage.length + 1,
+                        MessageType.SV_TEXT
+                    ]),
+                    Buffer.from(chatMessage)
+                ]);
+                const packet = new enet.Packet(packetBuffer, enet.PACKET_FLAG.RELIABLE);
+
+                const recipients = clientManager.connectedClients.filter(recipient => recipient.cn !== client.cn);
+                for (const recipient of recipients) {
+                    recipient.peer.send(1, packet);
                 }
-
-                if ([MessageType.SV_POSC, MessageType.SV_PING].includes(msgType)) {
-                    // ignore those for now, just to stop spamming the console
-
-                    return;
-                }
-
-                if (msgType === MessageType.SV_CONNECT) {
-                    const parsedContent = messageReader
-                        .readInt()
-                        .readInt()
-                        .readString()
-                        .getResult();
-
-                    const [ _, acVersion, buildType, playerName ] = parsedContent;
-
-                    client.name = playerName;
-
-                    console.log('sv_connect', playerName);
-                    sendServerMessage(`hey ${playerName}!`);
-
-                    // TODO: send SV_WELCOME message to client
-                }
-
-                if (msgType === MessageType.SV_TEXT) {
-                    const [ _, chatMessage ] = messageReader
-                        .readString()
-                        .getResult();
-
-                    console.log(`${client.name} says: ${chatMessage}`);
-
-                    // text messages are encased in client messages, so the client knows who sent the message
-                    const packetBuffer = Buffer.concat([
-                        Buffer.from([
-                            MessageType.SV_CLIENT,
-                            client.cn,
-                            chatMessage.length + 1,
-                            MessageType.SV_TEXT
-                        ]),
-                        Buffer.from(chatMessage)
-                    ]);
-                    const packet = new enet.Packet(packetBuffer, enet.PACKET_FLAG.RELIABLE);
-
-                    const recipients = clientManager.connectedClients.filter(recipient => recipient.cn !== client.cn);
-                    for (const recipient of recipients) {
-                        recipient.peer.send(1, packet);
-                    }
-                }
-            });
-
-            setInterval(function() {
-                sendServerMessage('Hey there!');
-                sendServerMessage(`${clientManager.connectedClients.length} clients are currently connected`);
-            }, 5000);
+            }
         });
 
-        host.start();
-    }
-);
+        setInterval(function() {
+            sendServerMessage('Hey there!');
+            sendServerMessage(`${clientManager.connectedClients.length} clients are currently connected`);
+        }, 5000);
+    });
+
+    host.start();
+}
+
+main();
