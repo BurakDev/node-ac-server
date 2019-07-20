@@ -14,12 +14,12 @@ export class MessageWriter {
         } else if (n < 0x8000 && n >= -0x8000) {
             // 16 bit int
             numBuffer = Buffer.alloc(3);
-            numBuffer.writeInt8(0x80, 0);
+            numBuffer[0] = 0x80;
             numBuffer.writeInt16LE(n, 1);
         } else {
             // 32 bit int
             numBuffer = Buffer.alloc(5);
-            numBuffer.writeInt8(0x81, 0);
+            numBuffer[0] = 0x81;
             numBuffer.writeInt32LE(n, 1);
         }
 
