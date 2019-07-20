@@ -4,23 +4,21 @@ import {MessageType} from "./interfaces/message-type";
 import {ClientManager} from "./services/client-manager";
 import {Client} from "./entities/client";
 import {MessageReader} from "./protocol/message-reader";
-import {MessageWriter} from "./protocol/message-writer";
+import {MessageComposer} from "./protocol/message-composer";
 
 async function main() {
     // bootstrap internal modules
     const clientManager = new ClientManager();
+    const composer = new MessageComposer(clientManager);
 
 
     /**
      * sends a message to all connected clients
      */
     function sendServerMessage(message: string) {
-        const writer = new MessageWriter();
-        writer
-            .putInt(MessageType.SV_SERVMSG)
-            .putString(message);
+        const msgBuffer = composer.serverMessage(message);
 
-        const packet = new enet.Packet(writer.getResult(), enet.PACKET_FLAG.RELIABLE);
+        const packet = new enet.Packet(msgBuffer, enet.PACKET_FLAG.RELIABLE);
 
         for (const client of clientManager.connectedClients) {
             client.peer.send(1, packet);
@@ -28,15 +26,9 @@ async function main() {
     }
 
     function sendServerInfo(client: Client) {
-        const writer = new MessageWriter();
-        writer
-            .putInt(MessageType.SV_SERVINFO)
-            .putInt(client.cn)
-            .putInt(1201) // ac protocol version
-            .putInt(-641778241) // salt
-            .putInt(0); // hasPassword
+        const msgBuffer = composer.serverInfo(client.cn);
 
-        const packet = new enet.Packet(writer.getResult(), enet.PACKET_FLAG.RELIABLE);
+        const packet = new enet.Packet(msgBuffer, enet.PACKET_FLAG.RELIABLE);
 
         client.peer.send(1, packet);
     }
@@ -102,17 +94,9 @@ async function main() {
 
                 console.log(`${client.name} says: ${chatMessage}`);
 
-                // text messages are encased in client messages, so the client knows who sent the message
-                const packetBuffer = Buffer.concat([
-                    Buffer.from([
-                        MessageType.SV_CLIENT,
-                        client.cn,
-                        chatMessage.length + 1,
-                        MessageType.SV_TEXT
-                    ]),
-                    Buffer.from(chatMessage)
-                ]);
-                const packet = new enet.Packet(packetBuffer, enet.PACKET_FLAG.RELIABLE);
+                const msgBuffer = composer.publicChatMessage(client.cn, chatMessage);
+
+                const packet = new enet.Packet(msgBuffer, enet.PACKET_FLAG.RELIABLE);
 
                 const recipients = clientManager.connectedClients.filter(recipient => recipient.cn !== client.cn);
                 for (const recipient of recipients) {
@@ -122,7 +106,6 @@ async function main() {
         });
 
         setInterval(function() {
-            sendServerMessage('Hey there!');
             sendServerMessage(`${clientManager.connectedClients.length} clients are currently connected`);
         }, 5000);
     });
