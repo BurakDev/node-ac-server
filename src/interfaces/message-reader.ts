@@ -3,16 +3,9 @@
  * while constructing an Array with the extracted and decoded contents
  */
 export class MessageReader {
-    private buffer: Buffer;
     private result = [];
 
-    /**
-     * @param packet
-     *      The ENetPacket to extract data from
-     */
-    constructor(packet: any) {
-        this.buffer = packet.data();
-    }
+    constructor(private buffer: Buffer) {}
 
     /**
      * Reads an integer from the buffer
