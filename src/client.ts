@@ -1,6 +1,7 @@
 import * as enet from 'enet';
+import * as util from 'util';
 import {MessageType} from "./interfaces/message-type";
-import {MessageReader} from "./interfaces/message-reader";
+import {MessageReader} from "./protocol/message-reader";
 
 const aclibrary = require('./aclibrary/aclibrary');
 

@@ -1,4 +1,4 @@
-import { Client } from "./client";
+import { Client } from "../entities/client";
 
 export class ClientManager {
     private maxClients = 6;

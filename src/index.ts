@@ -1,10 +1,10 @@
 import * as enet from 'enet';
 import { promisify } from 'util';
 import {MessageType} from "./interfaces/message-type";
-import {ClientManager} from "./interfaces/client-manager";
-import {Client} from "./interfaces/client";
-import {MessageReader} from "./interfaces/message-reader";
-import {MessageWriter} from "./interfaces/message-writer";
+import {ClientManager} from "./services/client-manager";
+import {Client} from "./entities/client";
+import {MessageReader} from "./protocol/message-reader";
+import {MessageWriter} from "./protocol/message-writer";
 
 async function main() {
     // bootstrap internal modules
