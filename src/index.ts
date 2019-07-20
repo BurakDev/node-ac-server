@@ -3,6 +3,7 @@ import {MessageType} from "./interfaces/message-type";
 import {ClientManager} from "./interfaces/client-manager";
 import {Client} from "./interfaces/client";
 import {MessageReader} from "./interfaces/message-reader";
+import {MessageWriter} from "./interfaces/message-writer";
 
 enet.createServer({
         address: {
@@ -26,12 +27,12 @@ enet.createServer({
          * sends a message to all connected clients
          */
         function sendServerMessage(message: string) {
-            const packetBuffer = Buffer.concat([
-                new Buffer([MessageType.SV_SERVMSG]),
-                Buffer.from(message)
-            ]);
+            const writer = new MessageWriter();
+            writer
+                .putInt(MessageType.SV_SERVMSG)
+                .putString(message);
 
-            const packet = new enet.Packet(packetBuffer, enet.PACKET_FLAG.RELIABLE);
+            const packet = new enet.Packet(writer.getResult(), enet.PACKET_FLAG.RELIABLE);
 
             for (const client of clientManager.connectedClients) {
                 client.peer.send(1, packet);
