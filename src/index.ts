@@ -5,6 +5,8 @@ import {ClientManager} from "./services/client-manager";
 import {Client} from "./entities/client";
 import {MessageReader} from "./protocol/message-reader";
 import {MessageComposer} from "./protocol/message-composer";
+import {Color} from "./interfaces/color";
+import {TextWriter} from "./protocol/text-writer";
 
 async function main() {
     // bootstrap internal modules
@@ -102,9 +104,18 @@ async function main() {
 
                 client.name = playerName;
 
-                sendServerMessage(`hey ${playerName}!`);
-
                 sendWelcomeMessage(client);
+                return;
+            }
+
+            if (msgType === MessageType.SV_CALLVOTE) {
+                sendServerMessage(
+                    new TextWriter()
+                        .setColor(Color.Red1)
+                        .addText('Voting is not implemented yet')
+                        .getText()
+                );
+                return;
             }
 
             if (msgType === MessageType.SV_TEXT) {
@@ -113,24 +124,23 @@ async function main() {
                     .getResult();
 
                 console.log(`${client.name} says: ${chatMessage}`);
-
-                const msgBuffer = composer.publicChatMessage(client.cn, chatMessage);
-
-                const packet = new enet.Packet(msgBuffer, enet.PACKET_FLAG.RELIABLE);
-
-                const recipients = clientManager.connectedClients.filter(recipient => recipient.cn !== client.cn);
-                for (const recipient of recipients) {
-                    recipient.peer.send(1, packet);
-                }
+                relayChatMessage(client, chatMessage);
             }
         });
-
-        setInterval(function() {
-            sendServerMessage(`${clientManager.connectedClients.length} clients are currently connected`);
-        }, 5000);
     });
 
     host.start();
+
+    setInterval(function() {
+        sendServerMessage(
+            new TextWriter()
+                .setColor(Color.Green0)
+                .addText(clientManager.connectedClients.length)
+                .setColor(Color.Green1)
+                .addText(' clients are currently connected')
+                .getText()
+        );
+    }, 20000);
 }
 
 main();
