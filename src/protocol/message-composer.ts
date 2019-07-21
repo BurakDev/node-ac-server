@@ -191,4 +191,16 @@ export class MessageComposer {
 
         return writer.getResult();
     }
+
+    static ping() {
+        return new MessageWriter()
+            .putInt(MessageType.SV_PING)
+            .putInt(Math.round(Date.now() >> 9)); // ¯\_(ツ)_/¯
+    }
+
+    static pong(v: number) {
+        return new MessageWriter()
+            .putInt(MessageType.SV_PONG)
+            .putInt(v);
+    }
 }
