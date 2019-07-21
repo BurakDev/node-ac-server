@@ -2,7 +2,7 @@ import { Client } from "../entities/client";
 import * as nconf from 'nconf';
 
 export class ClientManager {
-    private maxClients = nconf.get('server:maxClients');
+    private maxClients = nconf.get('server:max_clients');
     private clients: Client[] = Array(this.maxClients);
 
     get connectedClients() {
