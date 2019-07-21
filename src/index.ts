@@ -89,7 +89,6 @@ async function main() {
 
                 client.name = playerName;
 
-                console.log('sv_connect', playerName);
                 sendServerMessage(`hey ${playerName}!`);
 
                 sendWelcomeMessage(client);
