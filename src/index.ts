@@ -1,5 +1,5 @@
 import * as enet from 'enet';
-import { promisify } from 'util';
+import {promisify} from 'util';
 import {MessageType} from "./interfaces/message-type";
 import {ClientManager} from "./services/client-manager";
 import {Client} from "./entities/client";
@@ -45,6 +45,17 @@ async function main() {
 
     function relayChatMessage(client: Client, message: string) {
         const msgBuffer = composer.publicChatMessage(client.cn, message);
+
+        const packet = new enet.Packet(msgBuffer, enet.PACKET_FLAG.RELIABLE);
+
+        const recipients = clientManager.connectedClients.filter(recipient => recipient.cn !== client.cn);
+        for (const recipient of recipients) {
+            recipient.peer.send(1, packet);
+        }
+    }
+
+    function sendVoicecom(client: Client, id: number) {
+        const msgBuffer = composer.voicecom(client, id);
 
         const packet = new enet.Packet(msgBuffer, enet.PACKET_FLAG.RELIABLE);
 
@@ -169,6 +180,18 @@ async function main() {
 
                 console.log(`${client.name} says: ${chatMessage}`);
                 relayChatMessage(client, chatMessage);
+            }
+
+            if ([MessageType.SV_VOICECOM, MessageType.SV_VOICECOMTEAM].includes(msgType)) {
+                const vcReader = new MessageReader(packet.data())
+                    .readInt()
+                    .readInt()
+                    .readString();
+
+                const [ _, id, text ] = vcReader.getResult();
+
+                relayChatMessage(client, text);
+                sendVoicecom(client, id);
             }
         });
     });

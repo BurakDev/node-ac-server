@@ -192,6 +192,14 @@ export class MessageComposer {
         return writer.getResult();
     }
 
+    voicecom(sender: Client, id: number) {
+        return new MessageWriter()
+            .putInt(MessageType.SV_VOICECOMTEAM)
+            .putInt(sender.cn)
+            .putInt(id)
+            .getResult();
+    }
+
     static ping() {
         return new MessageWriter()
             .putInt(MessageType.SV_PING)
