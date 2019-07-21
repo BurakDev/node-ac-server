@@ -14,7 +14,7 @@ export class MessageComposer {
         return new MessageWriter()
             .putInt(MessageType.SV_CLIENT)
             .putInt(senderCn)
-            .putInt(message.length + 1)
+            .putInt(message.length + 2)
             .putInt(MessageType.SV_TEXT)
             .putString(message)
             .getResult();
