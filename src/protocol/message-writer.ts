@@ -1,8 +1,17 @@
 export class MessageWriter {
     resultBuffer = Buffer.alloc(0);
-    contents: any[];
 
     constructor() {}
+
+    putIpAddress(address: string) {
+        const octets = address.split('.').map(octet => parseInt(octet, 10));
+
+        console.log(octets);
+
+        return this.append(Buffer.from([
+            0x81, ...octets
+        ]));
+    }
 
     putInt(n: number): MessageWriter {
         let numBuffer: Buffer;
@@ -23,22 +32,23 @@ export class MessageWriter {
             numBuffer.writeInt32LE(n, 1);
         }
 
+        return this.append(numBuffer);
+    }
+
+    putString(s: string): MessageWriter {
+        return this
+            .append(Buffer.from(s))
+            .append(Buffer.from[0x00]);
+    };
+
+    append(buffer: Buffer) {
         this.resultBuffer = Buffer.concat([
             this.resultBuffer,
-            numBuffer
+            buffer
         ]);
 
         return this;
     }
-
-    putString(s: string): MessageWriter {
-        this.resultBuffer = Buffer.concat([
-            this.resultBuffer,
-            Buffer.from(s)
-        ]);
-
-        return this;
-    };
 
     getResult() {
         return this.resultBuffer;
