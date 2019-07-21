@@ -38,7 +38,7 @@ export class MessageWriter {
     putString(s: string): MessageWriter {
         return this
             .append(Buffer.from(s))
-            .append(Buffer.from[0x00]);
+            .append(Buffer.from([0x00]));
     };
 
     append(buffer: Buffer) {
