@@ -33,6 +33,14 @@ async function main() {
         client.peer.send(1, packet);
     }
 
+    function sendWelcomeMessage(client: Client) {
+        const msgBuffer = composer.welcome(client.cn);
+
+        const packet = new enet.Packet(msgBuffer, enet.PACKET_FLAG.RELIABLE);
+
+        client.peer.send(1, packet);
+    }
+
     // bootstrap server
     const host = await promisify(enet.createServer)({
         address: {
@@ -84,7 +92,7 @@ async function main() {
                 console.log('sv_connect', playerName);
                 sendServerMessage(`hey ${playerName}!`);
 
-                // TODO: send SV_WELCOME message to client
+                sendWelcomeMessage(client);
             }
 
             if (msgType === MessageType.SV_TEXT) {
