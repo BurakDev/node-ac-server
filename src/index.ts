@@ -1,4 +1,5 @@
 import * as enet from 'enet';
+import * as nconf from 'nconf';
 import {promisify} from 'util';
 import {MessageType} from "./interfaces/message-type";
 import {ClientManager} from "./services/client-manager";
@@ -9,10 +10,15 @@ import {Color} from "./interfaces/color";
 import {TextWriter} from "./protocol/text-writer";
 
 async function main() {
+    // load config
+    nconf.file({
+        file: `${__dirname}/../config.yml`,
+        format: require('nconf-yaml')
+    });
+
     // bootstrap internal modules
     const clientManager = new ClientManager();
     const composer = new MessageComposer(clientManager);
-
 
     /**
      * sends a message to all connected clients
@@ -83,10 +89,10 @@ async function main() {
     // bootstrap server
     const host = await promisify(enet.createServer)({
         address: {
-            address: "0.0.0.0",
-            port: "28763"
+            address: nconf.get('server:address'),
+            port: nconf.get('server:port')
         },
-        peers: 256,
+        peers: nconf.get('server:maxClients'),
         channels: 3,
         down: 0,
         up: 1
