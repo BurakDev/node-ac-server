@@ -142,9 +142,9 @@ export class MessageComposer {
             .putInt(MessageType.SV_INITCLIENT)
             .putInt(client.cn)
             .putString(client.name)
-            .putInt(3) // c.skin[TEAM_CLA]
-            .putInt(0) // c.skin[TEAM_RVSF]
-            .putInt(Team.TEAM_SPECT)
+            .putInt(client.skinCLA)
+            .putInt(client.skinRVSF)
+            .putInt(client.team)
             .putIpAddress(client.address)
             .getResult();
     }
