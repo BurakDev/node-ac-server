@@ -43,6 +43,17 @@ async function main() {
         client.peer.send(1, packet);
     }
 
+    function relayChatMessage(client: Client, message: string) {
+        const msgBuffer = composer.publicChatMessage(client.cn, message);
+
+        const packet = new enet.Packet(msgBuffer, enet.PACKET_FLAG.RELIABLE);
+
+        const recipients = clientManager.connectedClients.filter(recipient => recipient.cn !== client.cn);
+        for (const recipient of recipients) {
+            recipient.peer.send(1, packet);
+        }
+    }
+
     // bootstrap server
     const host = await promisify(enet.createServer)({
         address: {
