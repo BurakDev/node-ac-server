@@ -54,6 +54,21 @@ async function main() {
         }
     }
 
+    /**
+     * Sends info about one Client to all other clients
+     * Sent when that client connects or changes their name etc.
+     */
+    function sendInitClient(client: Client) {
+        const initClientBuffer = composer.initClient(client);
+
+        const initClientPacket = new enet.Packet(initClientBuffer, enet.PACKET_FLAG.RELIABLE);
+
+        const recipients = clientManager.connectedClients.filter(c => c.cn !== client.cn);
+        for (const recipient of recipients) {
+            recipient.peer.send(1, initClientPacket);
+        }
+    }
+
     // bootstrap server
     const host = await promisify(enet.createServer)({
         address: {
@@ -97,6 +112,20 @@ async function main() {
 
                 const pongBuffer = MessageComposer.pong(val);
                 peer.send(1, pongBuffer);
+                return;
+            }
+
+            if (msgType === MessageType.SV_SWITCHNAME) {
+                const nameReader = new MessageReader(packet.data())
+                    .readInt()
+                    .readString();
+
+                const [ _, name] = nameReader.getResult();
+
+                client.name = name;
+
+                sendInitClient(client);
+
                 return;
             }
 
