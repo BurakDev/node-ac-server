@@ -144,7 +144,11 @@ async function main() {
 
                 client.name = playerName;
 
+                // tell new client about the game state
                 sendWelcomeMessage(client);
+
+                // tell other clients about new client
+                sendInitClient(client);
                 return;
             }
 
