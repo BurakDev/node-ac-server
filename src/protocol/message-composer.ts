@@ -1,3 +1,4 @@
+import * as nconf from 'nconf';
 import {ClientManager} from "../services/client-manager";
 import {MessageWriter} from "./message-writer";
 import {MessageType} from "../interfaces/message-type";
@@ -23,7 +24,10 @@ export class MessageComposer {
     motd(motd: string) {
         return new MessageWriter()
             .putInt(MessageType.SV_TEXT)
-            .putString(motd)
+            .putString(nconf.get('server:motd')
+                .replace(new RegExp('\\\\f', 'g'), '\f')
+                .replace(new RegExp('\\\\n', 'g'), '\n')
+            )
             .getResult();
     }
 
