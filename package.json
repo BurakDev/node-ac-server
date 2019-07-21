@@ -17,9 +17,12 @@
   },
   "homepage": "https://github.com/BurakDev/node-ac-server#readme",
   "dependencies": {
-    "enet": "^0.2.9"
+    "enet": "^0.2.9",
+    "nconf": "^0.10.0",
+    "nconf-yaml": "^1.0.2"
   },
   "devDependencies": {
+    "@types/nconf": "^0.10.0",
     "@types/node": "^12.6.4"
   }
 }
