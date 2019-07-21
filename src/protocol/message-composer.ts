@@ -4,6 +4,7 @@ import {MessageType} from "../interfaces/message-type";
 import {GameMode} from "../interfaces/game-mode";
 import {Team} from "../interfaces/team";
 import {Client} from "../entities/client";
+import {ClientState} from "../interfaces/client-state";
 
 export class MessageComposer {
     constructor(private clientManager: ClientManager) {
@@ -93,7 +94,7 @@ export class MessageComposer {
         for (const client of otherClients) {
             writer
                 .putInt(client.cn)
-                .putInt(0) // state
+                .putInt(ClientState.CS_SPECTATE) // state
                 .putInt(0) // lifesequence
                 .putInt(5) // primary
                 .putInt(5) // gunselect
@@ -143,6 +144,7 @@ export class MessageComposer {
             .putString(client.name)
             .putInt(3) // c.skin[TEAM_CLA]
             .putInt(0) // c.skin[TEAM_RVSF]
+            .putInt(Team.TEAM_SPECT)
             .putIpAddress(client.address)
             .getResult();
     }
