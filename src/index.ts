@@ -1,5 +1,6 @@
 import * as enet from 'enet';
 import * as nconf from 'nconf';
+import * as fs from 'fs';
 import {promisify} from 'util';
 import {MessageType} from "./interfaces/message-type";
 import {ClientManager} from "./services/client-manager";
@@ -11,10 +12,25 @@ import {TextWriter} from "./protocol/text-writer";
 
 async function main() {
     // load config
-    nconf.file({
-        file: `${__dirname}/../config.yml`,
-        format: require('nconf-yaml')
-    });
+    function loadConfig() {
+        nconf.file({
+            file: `${__dirname}/../config.yml`,
+            format: require('nconf-yaml')
+        });
+    }
+    loadConfig();
+
+    // online & live config updates... woop woop
+    if (nconf.get('server:config_live_reload')) {
+        fs.watch(`${__dirname}/..`, (eventType, filename) => {
+
+            if (filename !== 'config.yml') {
+                return;
+            }
+
+            loadConfig();
+        });
+    }
 
     // bootstrap internal modules
     const clientManager = new ClientManager();
