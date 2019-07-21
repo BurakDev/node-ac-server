@@ -62,21 +62,34 @@ async function main() {
         const client = new Client(peer);
         clientManager.addClient(client);
 
+        console.log(client.peer.address().address);
+
         sendServerInfo(client);
 
         peer.on("message", (packet, chan) => {
             const messageReader = new MessageReader(packet.data()).readInt();
             const [ msgType ] = messageReader.getResult();
 
-            if (msgType !== MessageType.SV_POSC && msgType !== MessageType.SV_PING) {
-                console.log(`got message on chan ${chan}, type: ${MessageType[msgType]}, content:  `, Array.from(packet.data()));
-            }
-
-            if ([MessageType.SV_POSC, MessageType.SV_PING].includes(msgType)) {
+            if (msgType === MessageType.SV_POSC) {
                 // ignore those for now, just to stop spamming the console
-
                 return;
             }
+
+            if (msgType === MessageType.SV_PING) {
+                const pingReader = new MessageReader(packet.data())
+                    .readInt()
+                    .readInt();
+
+                const [ _, val ] = pingReader.getResult();
+
+                const pongBuffer = MessageComposer.pong(val);
+                peer.send(1, pongBuffer);
+                return;
+            }
+
+
+            console.log(`got message on chan ${chan}, type: ${MessageType[msgType]}, content:  `, Array.from(packet.data()));
+
 
             if (msgType === MessageType.SV_CONNECT) {
                 const parsedContent = messageReader
