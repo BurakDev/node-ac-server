@@ -1,5 +1,6 @@
 import * as enet from 'enet';
 import * as nconf from 'nconf';
+import * as nunjucks from 'nunjucks';
 import * as fs from 'fs';
 import {promisify} from 'util';
 import {MessageType} from "./interfaces/message-type";
@@ -31,6 +32,10 @@ async function main() {
             loadConfig();
         });
     }
+
+    nunjucks.configure({
+        autoescape: true
+    });
 
     // bootstrap internal modules
     const clientManager = new ClientManager();

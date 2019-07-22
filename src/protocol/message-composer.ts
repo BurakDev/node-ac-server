@@ -25,7 +25,8 @@ export class MessageComposer {
 
     motd(motdTemplate: string) {
         const motd = nunjucks.renderString(motdTemplate, {
-            Color
+            Color,
+            clients: this.clientManager.connectedClients.map(c => c.name)
         }).replace(new RegExp('\\\\n', 'g'), '\n');
 
         return new MessageWriter()
@@ -194,7 +195,7 @@ export class MessageComposer {
 
         writer.append(this.serverMode());
 
-        writer.append(this.motd(nconf.get('server:motd')));
+        writer.append(this.motd(nconf.get('server:motd').join('\n')));
 
         return writer.getResult();
     }
