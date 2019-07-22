@@ -4,7 +4,7 @@ server:
   port: 28763
 
   # game-related configuration
-  motd: '{{Color.Green0}}Welcome to {{Color.Green1}}node-ac-server\n\{{Color.Red1}}github.com/burakdev/node-ac-server'
+  motd: '{{Color.Green0}}Welcome to {{Color.Green1}}node-ac-server\n{{Color.Red3}}github.com/burakdev/node-ac-server'
   max_clients: 6
 
   # automatically reload the config file when it changes
