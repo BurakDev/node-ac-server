@@ -15,7 +15,7 @@ export class TextWriter {
     }
 
     setColor(color: Color) {
-        this.text += `\f${color}`;
+        this.text += color;
         return this;
     }
 
