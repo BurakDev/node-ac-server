@@ -8,5 +8,5 @@ export class ClientGameState {
     lifeSequence = 0;
     health = 1; // OSOK 4 eva
     armor = 0;
-    
+
 }
