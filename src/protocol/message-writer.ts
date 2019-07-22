@@ -6,8 +6,6 @@ export class MessageWriter {
     putIpAddress(address: string) {
         const octets = address.split('.').map(octet => parseInt(octet, 10));
 
-        console.log(octets);
-
         return this.append(Buffer.from([
             0x81, ...octets
         ]));

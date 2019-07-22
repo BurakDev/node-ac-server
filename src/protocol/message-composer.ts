@@ -1,4 +1,5 @@
 import * as nconf from 'nconf';
+import * as nunjucks from 'nunjucks';
 import {ClientManager} from "../services/client-manager";
 import {MessageWriter} from "./message-writer";
 import {MessageType} from "../interfaces/message-type";

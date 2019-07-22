@@ -118,12 +118,10 @@ async function main() {
     console.log("host ready on %s:%s", host.address().address, host.address().port);
 
     host.on("connect", (peer, data) => {
-        console.log("peer connected");
+        console.log("peer connected: ", peer.address().address);
 
         const client = new Client(peer);
         clientManager.addClient(client);
-
-        console.log(client.peer.address().address);
 
         sendServerInfo(client);
 
