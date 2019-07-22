@@ -7,6 +7,7 @@ import {GameMode} from "../interfaces/game-mode";
 import {Team} from "../interfaces/team";
 import {Client} from "../entities/client";
 import {ClientState} from "../interfaces/client-state";
+import {Color} from "../interfaces/color";
 
 export class MessageComposer {
     constructor(private clientManager: ClientManager) {
@@ -22,13 +23,14 @@ export class MessageComposer {
             .getResult();
     }
 
-    motd(motd: string) {
+    motd(motdTemplate: string) {
+        const motd = nunjucks.renderString(motdTemplate, {
+            Color
+        }).replace(new RegExp('\\\\n', 'g'), '\n');
+
         return new MessageWriter()
             .putInt(MessageType.SV_TEXT)
-            .putString(nconf.get('server:motd')
-                .replace(new RegExp('\\\\f', 'g'), '\f')
-                .replace(new RegExp('\\\\n', 'g'), '\n')
-            )
+            .putString(motd)
             .getResult();
     }
 
@@ -192,7 +194,7 @@ export class MessageComposer {
 
         writer.append(this.serverMode());
 
-        writer.append(this.motd('Welcome :)'));
+        writer.append(this.motd(nconf.get('server:motd')));
 
         return writer.getResult();
     }
