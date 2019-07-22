@@ -8,6 +8,8 @@ import {Team} from "../interfaces/team";
 import {Client} from "../entities/client";
 import {ClientState} from "../interfaces/client-state";
 import {Color} from "../interfaces/color";
+import {Gun} from "../interfaces/gun";
+import {SpawnPermission} from "../interfaces/spawn-permission";
 
 export class MessageComposer {
     constructor(private clientManager: ClientManager) {
@@ -80,7 +82,7 @@ export class MessageComposer {
 
     setTeam(cn: number, team: Team) {
         return new MessageWriter()
-            .putInt(MessageType.SV_SETTEAM)
+            .putInt(MessageType.SV_SETTEAM) // actually: newteam | ((ftr == FTR_SILENTFORCE ? FTR_INFO : ftr) << 4)
             .putInt(cn)
             .putInt(team)
             .getResult();
@@ -205,6 +207,29 @@ export class MessageComposer {
             .putInt(MessageType.SV_VOICECOMTEAM)
             .putInt(sender.cn)
             .putInt(id)
+            .getResult();
+    }
+
+    spawn(client: Client) {
+        return new MessageWriter()
+            .putInt(MessageType.SV_SPAWNSTATE)
+            .putInt(1) // c.state.lifesequence
+            .putInt(1) // health
+            .putInt(0) // armor
+            .putInt(5) // primary
+            .putInt(0) // gunselect
+            .putInt(-1) // m_arena ? c->spawnindex : -1
+            .putInt(Gun.NUMGUNS) // NUMGUNS
+            .putInt(5) // ammo
+            .putInt(Gun.NUMGUNS) // NUMGUNS
+            .putInt(10)
+            .getResult(); // magazines
+    }
+
+    spawnDeny(permission: SpawnPermission) {
+        return new MessageWriter()
+            .putInt(MessageType.SV_SPAWNDENY)
+            .putInt(permission)
             .getResult();
     }
 
