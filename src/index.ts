@@ -108,7 +108,7 @@ async function main() {
             address: nconf.get('server:address'),
             port: nconf.get('server:port')
         },
-        peers: nconf.get('server:maxClients'),
+        peers: nconf.get('server:max_clients'),
         channels: 3,
         down: 0,
         up: 1
