@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es6",
+    "target": "esnext",
     "sourceMap": true,
-    "allowJs": true
+    "allowJs": true,
+    "outDir": "build"
   },
   "lib": [
-    "ESNext"
+    "es7"
   ],
-  "exclude": [
-    "node_modules",
-    "aclibrary"
+  "include": [
+    "src"
   ]
 }

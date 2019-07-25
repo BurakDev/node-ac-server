@@ -63,7 +63,10 @@ typings/
 # TypeScript compiler output (except wasm stuff)
 *.js
 *.js.map
-!aclibrary/*.js
+!src/aclibrary/*.js
 
 # IDEA IDE-related stuff
 .idea
+
+# compiler output
+build

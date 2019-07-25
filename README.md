@@ -10,4 +10,10 @@ $ npm install
 ```
 $ tsc -w -p .
 ```
+
+* Run the server
+```
+node build/index
+```
+
 * Enjoy!

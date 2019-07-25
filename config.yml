@@ -1,0 +1,11 @@
+server:
+  # UDP service settings
+  address: 0.0.0.0
+  port: 28763
+
+  # game-related configuration
+  motd: '{{Color.Green0}}Welcome to {{Color.Green1}}node-ac-server\n{{Color.Red3}}github.com/burakdev/node-ac-server'
+  max_clients: 6
+
+  # automatically reload the config file when it changes
+  config_live_reload: 1
