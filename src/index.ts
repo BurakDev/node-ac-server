@@ -10,6 +10,8 @@ import {MessageReader} from "./protocol/message-reader";
 import {MessageComposer} from "./protocol/message-composer";
 import {Color} from "./interfaces/color";
 import {TextWriter} from "./protocol/text-writer";
+import {Team} from "./interfaces/team";
+import {SpawnPermission} from "./interfaces/spawn-permission";
 
 async function main() {
     // load config
@@ -90,6 +92,33 @@ async function main() {
         for (const recipient of recipients) {
             recipient.peer.send(1, packet);
         }
+    }
+
+    function sendClientTeam(client: Client, team: Team) {
+        const msgBuffer = composer.setTeam(client.cn, team);
+
+        const packet = new enet.Packet(msgBuffer, enet.PACKET_FLAG.RELIABLE);
+
+        const recipients = clientManager.connectedClients;
+        for (const recipient of recipients) {
+            recipient.peer.send(1, packet);
+        }
+    }
+
+    function sendSpawn(client: Client) {
+        const msgBuffer = composer.spawn(client);
+
+        const packet = new enet.Packet(msgBuffer, enet.PACKET_FLAG.RELIABLE);
+
+        client.peer.send(1, packet);
+    }
+
+    function sendSpawnDeny(client: Client, permission: SpawnPermission) {
+        const msgBuffer = composer.spawnDeny(permission);
+
+        const packet = new enet.Packet(msgBuffer, enet.PACKET_FLAG.RELIABLE);
+
+        client.peer.send(1, packet);
     }
 
     /**
@@ -217,6 +246,29 @@ async function main() {
 
                 relayChatMessage(client, text);
                 sendVoicecom(client, id);
+            }
+
+            if (msgType === MessageType.SV_MAPIDENT) {
+                const reader = new MessageReader(packet.data())
+                    .readInt()  // gzs -- maybe gzipped map size
+                    .readInt(); // map revision
+
+                // TODO: check if size and rev match with map on server, else deny spawn
+
+                client.team = Team.TEAM_CLA;
+                sendClientTeam(client, Team.TEAM_CLA);
+
+                sendSpawnDeny(client, SpawnPermission.SP_OK);
+
+                sendSpawn(client);
+            }
+
+            if (msgType === MessageType.SV_SPAWN) {
+                const reader = new MessageReader(packet.data())
+                    .readInt() // lifesequence
+                    .readInt(); // gunselect
+
+
             }
         });
     });
